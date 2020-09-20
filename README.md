@@ -2,4 +2,5 @@
 NOT FINSHED YET!!!
 
 #### Demo video link
-https://www.youtube.com/watch?v=s65UBOuVGa0
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/s65UBOuVGa0/0.jpg)](https://www.youtube.com/watch?v=s65UBOuVGa0)
+
