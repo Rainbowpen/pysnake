@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "/home/simon/.local/share/virtualenvs/snake-2Ewu49q-/bin/python",
+    "python.linting.pylamaEnabled": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+}

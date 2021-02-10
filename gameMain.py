@@ -5,7 +5,6 @@ from pynput import keyboard
 import threading
 import random
 
-
 redCandy = candy
 
 
@@ -52,14 +51,32 @@ class greenSnake(snake):
 				mainWD.gp.delete(mainWD.gp.greenSnake_tail[i-1])
 		mainWD.gp.greenSnake_tail.clear()
 
+	def die():
+		isdie = False
+		if (greenSnake.head.x < 0 or
+		greenSnake.head.x > mainWD.width or
+		greenSnake.head.y < 0 or greenSnake.head.y > mainWD.height):
+				isdie = True
+		if len(greenSnake.body.position) > 1:
+			for i in range(len(greenSnake.body.position)):
+				if i>1 and [greenSnake.head.x, greenSnake.head.y] == greenSnake.body.position[i]:
+						isdie = True
+						print(greenSnake.head.x,greenSnake.head.y, greenSnake.body.position[i])
+		if 	isdie:
+			branch.control.stop_timeFlow = True
+	
 
-class mainWD():
+
+
+
+class mainWD:
 	width = 80
 	height = 60
 	unit = 10
 	window = None
 	gp = None
 	quit = False
+	freshDone = True
 
 	def __init__(self):
 		mainWD.window = Tk()
@@ -83,6 +100,7 @@ class mainWD():
 		if eat():
 			greenSnake.grow()
 			resetCandy()
+			greenSnake.speed *= 0.9
 		greenSnake.addPosition()
 		mainWD.gp.coords(
 			mainWD.gp.greenSnake,
@@ -97,23 +115,25 @@ class mainWD():
 			mainWD.unit*(redCandy.x+1),
 			mainWD.unit*(redCandy.y+1))
 		greenSnake.creadBody()
+		statusBarSetup()
 		mainWD.window.update()
 		greenSnake.deleteBody()
-		print('eat = {0}  position = {1}'.format(greenSnake.eat,
-										greenSnake.body.position))
+		greenSnake.die()
+		print('eat = {0}  position = {1}  speed = {2}'.format(greenSnake.eat,
+										greenSnake.body.position, greenSnake.speed))
+		mainWD.freshDone = True
 
 
-class branch ():
+class branch():
 	threading_timeFlow = None
 	threading_keypress = None
 
-	class control ():
-		stop_timeFlow = False
-		kill_timeFlow = False
-		stop_keypress = False
-		kill_keypress = False
+	stop_timeFlow = False
+	kill_timeFlow = False
+	stop_keypress = False
+	kill_keypress = False
 
-		def done():
+	def done():
 			branch.control.kill_keypress, branch.control.kill_timeFlow = True, True
 
 	def __init__(self,):
@@ -143,7 +163,7 @@ def statusBarSetup():
 	mainWD.gp.btm_txt = mainWD.gp.create_text(
 					mainWD.unit*(mainWD.width/2),
 					mainWD.unit*mainWD.height+15,
-					text='Apple : 0',
+					text='Apple : ' + str(greenSnake.eat),
 					font=("Arial bold", 15),
 					fill='black')
 
@@ -175,8 +195,8 @@ def timeFlow():
 			break
 		time.sleep(greenSnake.speed)
 		if branch.control.stop_timeFlow:
-			pass
-		else:
+			greenSnake.isMove = False
+		elif mainWD.freshDone:
 			if greenSnake.direction == 1:
 				# NOTE: go up
 				greenSnake.head.y -= 1
@@ -190,6 +210,7 @@ def timeFlow():
 				# NOTE: go right
 				greenSnake.head.x += 1
 			greenSnake.isMove = True
+			mainWD.freshDone = False
 
 
 def on_press(key):
@@ -211,9 +232,6 @@ def on_press(key):
 				or ('{0}'.format(key)) == "'d'")
 				and greenSnake.direction != 3):
 				greenSnake.direction = 4
-			elif((('{0}'.format(key)) == "'R'")
-				or (('{0}'.format(key)) == "'r'")):
-				reset()
 			greenSnake.isMove = False
 	except AttributeError:
 		pass
@@ -226,6 +244,9 @@ def on_release(key):
 		mainWD.quit = True
 		# Stop listener
 		return False
+	elif((('{0}'.format(key)) == "'R'")
+			or (('{0}'.format(key)) == "'r'")):
+			reset()
 
 
 def keypress():
@@ -243,6 +264,7 @@ def eat():
 def reset():
 	greenSnake.head.x = random.randint(20, mainWD.width-20)
 	greenSnake.head.y = random.randint(20, mainWD.height-20)
+	greenSnake.head.y = random.randint(20, mainWD.height-20)
 	# NOTE: greenSnake start x, y
 	greenSnake.head.last_x = greenSnake.head.x
 	greenSnake.head.last_y = greenSnake.head.y
@@ -250,6 +272,7 @@ def reset():
 	resetCandy()
 	# NOTE: candy start x, y
 	greenSnake.eat = 0
+	greenSnake.speed = 0.15
 	greenSnake.isMove = False
 	branch.control.stop_timeFlow = False
 	branch.control.stop_keypress = False
